@@ -4,6 +4,8 @@ import { Stack } from "expo-router";
 import { useEffect } from "react";
 import * as SplashScreen from "expo-splash-screen";
 import { AppProvider } from "../context/appContext";
+import { ThemeProvider } from "../context/themeContext";
+import ThemedStatusBar from "../component/ThemedStatusBar";
 
 export default function RootLayout() {
     useEffect(() => {
@@ -14,14 +16,18 @@ export default function RootLayout() {
     }, []);
 
     return (
-        <AppProvider>
-            <SafeAreaProvider>
-                <Stack screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="splash" />
-                    <Stack.Screen name="index" />
-                </Stack>
-            </SafeAreaProvider>
-        </AppProvider>
+        <ThemeProvider>
+            <AppProvider>
+                <SafeAreaProvider>
+                    <ThemedStatusBar />
+                    <Stack screenOptions={{ headerShown: false }}>
+                        <Stack.Screen name="splash" />
+                        <Stack.Screen name="index" />
+                    </Stack>
+                </SafeAreaProvider>
+            </AppProvider>
+        </ThemeProvider>
+
 
     );
 }
