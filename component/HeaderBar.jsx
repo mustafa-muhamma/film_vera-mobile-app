@@ -1,14 +1,14 @@
-import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Platform, StatusBar } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeContext } from '../context/themeContext';
-import { usePathname } from 'expo-router';
+import { usePathname, useRouter } from 'expo-router';
 import ThemedText from './ThemedText';
 import ThemedView from './ThemedView';
 
 export default function Header() {
     const { mode, toggleTheme, colors } = useThemeContext();
     const pathname = usePathname();
+    const router = useRouter();
 
     const getTitle = () => {
         if (pathname === '/' || pathname.includes('index')) return 'Movie Explorer';
@@ -30,9 +30,8 @@ export default function Header() {
                         color={mode === 'light' ? '#E50914' : '#FFD369'}
                     />
                 </TouchableOpacity>
-
                 <TouchableOpacity
-                    onPress={() => console.log('Search pressed')}
+                    onPress={() => router.push('/search')}
                     style={styles.iconButton}
                 >
                     <Ionicons name="search" size={22} color={colors.text} />

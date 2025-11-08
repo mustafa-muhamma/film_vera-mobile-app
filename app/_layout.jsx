@@ -37,6 +37,7 @@ export default function RootLayout() {
                         {!isSplash && <HeaderBar />}
                         <Stack screenOptions={{ headerShown: false }}>
                             <Stack.Screen name="splash/index" />
+                            <Stack.Screen name="search/index" />
                             <Stack.Screen name="(tabs)" />
                         </Stack>
                     </SafeAreaProvider>

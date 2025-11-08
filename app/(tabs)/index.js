@@ -28,8 +28,6 @@ export default function Home() {
                 <MovieRow title="⭐ Top Rated" data={movies.slice(10, 20)} />
                 <MovieRow title="🎥 Now Playing" data={movies.slice(5, 15)} />
                 <MovieRow title="🧭 Discover More" data={movies.slice(15, 25)} />
-
-                <View style={{ height: 80 }} />
             </ScrollView>
         </ThemedView>
     );
@@ -40,7 +38,7 @@ export default function Home() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: 50,
+        paddingTop: 30,
         paddingHorizontal: 10,
     },
     loadingContainer: {
