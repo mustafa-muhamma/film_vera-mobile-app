@@ -5,7 +5,7 @@ import ThemedText from '../../component/ThemedText';
 import { useAppContext } from '../../context/appContext';
 
 export default function Home() {
-    const { movies, loading, error } = useAppContext();
+    const { popular, trending, topRated, loading, error } = useAppContext();
 
     if (loading)
         return (
@@ -24,10 +24,10 @@ export default function Home() {
     return (
         <ThemedView style={styles.container}>
             <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
-                <MovieRow title="🔥 Popular Movies" data={movies.slice(0, 10)} />
-                <MovieRow title="⭐ Top Rated" data={movies.slice(10, 20)} />
-                <MovieRow title="🎥 Now Playing" data={movies.slice(5, 15)} />
-                <MovieRow title="🧭 Discover More" data={movies.slice(15, 25)} />
+                <MovieRow title="🔥 Popular Movies" data={popular} />
+                <MovieRow title="⭐ Top Rated" data={topRated} />
+                <MovieRow title="🎥 Now Playing" data={trending} />
+                <MovieRow title="🧭 Discover More" data={popular.slice(15, 25)} />
             </ScrollView>
         </ThemedView>
     );
