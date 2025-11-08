@@ -1,44 +1,29 @@
-import React from 'react';
-import { TouchableOpacity, View, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; // ✅ Expo's icon pack
+import { Ionicons } from '@expo/vector-icons';
+import { TouchableOpacity, StyleSheet } from 'react-native';
 import { useThemeContext } from '../context/themeContext';
 
 export default function ThemeToggle() {
-  const { mode, toggleTheme, colors } = useThemeContext();
+  const { mode, toggleTheme } = useThemeContext();
 
   return (
-    <TouchableOpacity
-      onPress={toggleTheme}
-      activeOpacity={0.8}
-      style={[
-        styles.button,
-        {
-          backgroundColor: colors.surface,
-          shadowColor: colors.text,
-        },
-      ]}
-    >
-      <View>
-        {mode === 'dark' ? (
-          <Ionicons name="sunny" size={24} color={colors.accent} />
-        ) : (
-          <Ionicons name="moon" size={24} color={colors.primary} />
-        )}
-      </View>
+    <TouchableOpacity onPress={toggleTheme} style={styles.toggle}>
+      <Ionicons
+        name={mode === 'light' ? 'moon' : 'sunny'}
+        size={22}
+        color={mode === 'light' ? '#E50914' : '#FFD369'}
+      />
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  button: {
+  toggle: {
     position: 'absolute',
     top: 50,
     right: 20,
-    borderRadius: 30,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 25,
     padding: 10,
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 6,
-    zIndex: 999,
+    elevation: 4,
   },
 });
