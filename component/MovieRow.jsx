@@ -1,13 +1,15 @@
-import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, FlatList, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ThemedView from './ThemedView';
 import ThemedText from './ThemedText';
 import { useWishlist } from '../context/wishListContext';
 import { useThemeContext } from '../context/themeContext';
+import { useRouter } from 'expo-router';
 
 export default function MovieRow({ title, data }) {
     const { wishlist, toggleWishlist } = useWishlist();
     const { colors } = useThemeContext();
+    const router = useRouter();
 
     return (
         <ThemedView style={styles.section}>
@@ -24,14 +26,19 @@ export default function MovieRow({ title, data }) {
 
                     return (
                         <View style={styles.movieCard}>
-                            <Image
-                                source={{
-                                    uri: item.poster_path
-                                        ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
-                                        : 'https://via.placeholder.com/120x180?text=No+Image',
-                                }}
-                                style={styles.poster}
-                            />
+                            <TouchableOpacity
+                                onPress={() => router.push(`/details/${item.id}`)}
+                                activeOpacity={0.9}
+                            >
+                                <Image
+                                    source={{
+                                        uri: item.poster_path
+                                            ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+                                            : 'https://via.placeholder.com/120x180?text=No+Image',
+                                    }}
+                                    style={styles.poster}
+                                />
+                            </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={() => toggleWishlist(item)}
                                 style={styles.heartButton}
@@ -41,10 +48,17 @@ export default function MovieRow({ title, data }) {
                                     name={isWishlisted ? 'heart' : 'heart-outline'}
                                     size={22}
                                     color={isWishlisted ? '#E50914' : colors.text}
+                                    style={{
+                                        textShadowColor: isWishlisted ? 'rgba(229,9,20,0.6)' : 'transparent',
+                                        textShadowRadius: isWishlisted ? 10 : 0,
+                                        textShadowOffset: { width: 0, height: 0 },
+                                    }}
                                 />
                             </TouchableOpacity>
-
-                            <ThemedText numberOfLines={1} style={[styles.movieTitle, { color: colors.text }]}>
+                            <ThemedText
+                                numberOfLines={1}
+                                style={[styles.movieTitle, { color: colors.text }]}
+                            >
                                 {item.title}
                             </ThemedText>
                         </View>
@@ -54,6 +68,7 @@ export default function MovieRow({ title, data }) {
         </ThemedView>
     );
 }
+
 const styles = StyleSheet.create({
     section: {
         marginBottom: 30,
