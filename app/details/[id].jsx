@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
     View,
     Image,
@@ -6,14 +6,23 @@ import {
     ScrollView,
     ActivityIndicator,
     TouchableOpacity,
+    Modal,
+    Dimensions,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { fetchMovieDetails, fetchSimilarMovies } from "../../services/tmdbApi";
+import {
+    fetchMovieDetails,
+    fetchSimilarMovies,
+    fetchMovieTrailer,
+} from "../../services/tmdbApi";
 import ThemedView from "../../component/ThemedView";
 import ThemedText from "../../component/ThemedText";
 import { useThemeContext } from "../../context/themeContext";
 import MovieRow from "../../component/MovieRow";
+import YoutubePlayer from "react-native-youtube-iframe";
+
+const { width } = Dimensions.get("window");
 
 export default function MovieDetailsScreen() {
     const { id } = useLocalSearchParams();
@@ -21,15 +30,22 @@ export default function MovieDetailsScreen() {
     const { colors } = useThemeContext();
     const [movie, setMovie] = useState(null);
     const [similar, setSimilar] = useState([]);
+    const [trailerKey, setTrailerKey] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [showTrailer, setShowTrailer] = useState(false);
+    const [isPlaying, setIsPlaying] = useState(true);
 
     useEffect(() => {
         const loadMovie = async () => {
             try {
-                const details = await fetchMovieDetails(id);
-                const related = await fetchSimilarMovies(id);
+                const [details, related, trailer] = await Promise.all([
+                    fetchMovieDetails(id),
+                    fetchSimilarMovies(id),
+                    fetchMovieTrailer(id),
+                ]);
                 setMovie(details);
                 setSimilar(related);
+                setTrailerKey(trailer);
             } catch (error) {
                 console.error("Error loading movie details:", error);
             } finally {
@@ -38,6 +54,12 @@ export default function MovieDetailsScreen() {
         };
         loadMovie();
     }, [id]);
+
+    const onStateChange = useCallback((state) => {
+        if (state === "ended") {
+            setIsPlaying(false);
+        }
+    }, []);
 
     if (loading)
         return (
@@ -49,31 +71,36 @@ export default function MovieDetailsScreen() {
     if (!movie)
         return (
             <ThemedView style={styles.centered}>
-                <ThemedText style={{ color: colors.text }}>
-                    Movie not found 😢
-                </ThemedText>
+                <ThemedText style={{ color: colors.text }}>Movie not found 😢</ThemedText>
             </ThemedView>
         );
 
     return (
         <ThemedView style={[styles.container, { backgroundColor: colors.background }]}>
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                <Ionicons name="arrow-back" size={24} color={colors.text} />
+            </TouchableOpacity>
+
             <ScrollView showsVerticalScrollIndicator={false}>
-                {/* Back button */}
-                <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                    <Ionicons name="arrow-back" size={24} color={colors.text} />
-                </TouchableOpacity>
+                <View style={styles.posterContainer}>
+                    <Image
+                        source={{
+                            uri: movie.backdrop_path
+                                ? `https://image.tmdb.org/t/p/w780${movie.backdrop_path}`
+                                : "https://via.placeholder.com/500x750?text=No+Image",
+                        }}
+                        style={styles.poster}
+                    />
+                    {trailerKey && (
+                        <TouchableOpacity
+                            style={styles.playButton}
+                            onPress={() => setShowTrailer(true)}
+                        >
+                            <Ionicons name="play-circle" size={64} color="#E50914" />
+                        </TouchableOpacity>
+                    )}
+                </View>
 
-                {/* Poster */}
-                <Image
-                    source={{
-                        uri: movie.poster_path
-                            ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-                            : "https://via.placeholder.com/500x750?text=No+Image",
-                    }}
-                    style={styles.poster}
-                />
-
-                {/* Details */}
                 <View style={styles.details}>
                     <ThemedText style={styles.title}>{movie.title}</ThemedText>
                     <ThemedText style={styles.subText}>
@@ -82,21 +109,42 @@ export default function MovieDetailsScreen() {
                     <ThemedText style={styles.overview}>{movie.overview}</ThemedText>
                 </View>
 
-                {/* Similar Movies */}
                 {similar.length > 0 && (
                     <View style={{ marginTop: 20 }}>
                         <MovieRow title="🎞 Similar Movies" data={similar} />
                     </View>
                 )}
             </ScrollView>
+
+            <Modal visible={showTrailer} animationType="slide" transparent={true}>
+                <View style={styles.modalBackground}>
+                    {trailerKey ? (
+                        <YoutubePlayer
+                            height={250}
+                            width={width}
+                            play={isPlaying}
+                            videoId={trailerKey}
+                            onChangeState={onStateChange}
+                        />
+                    ) : (
+                        <ThemedText style={{ color: "#fff", fontSize: 16 }}>
+                            🎬 Trailer not available
+                        </ThemedText>
+                    )}
+                    <TouchableOpacity
+                        style={styles.closeButton}
+                        onPress={() => setShowTrailer(false)}
+                    >
+                        <Ionicons name="close" size={28} color="#fff" />
+                    </TouchableOpacity>
+                </View>
+            </Modal>
         </ThemedView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
+    container: { flex: 1 },
     loading: {
         flex: 1,
         justifyContent: "center",
@@ -106,16 +154,25 @@ const styles = StyleSheet.create({
         position: "absolute",
         top: 40,
         left: 15,
-        zIndex: 2,
-        backgroundColor: "rgba(0,0,0,0.5)",
+        zIndex: 10,
+        backgroundColor: "rgba(0,0,0,0.4)",
         borderRadius: 25,
         padding: 8,
     },
+    posterContainer: {
+        width: "100%",
+        height: 250,
+        backgroundColor: "#000",
+    },
     poster: {
         width: "100%",
-        height: 500,
-        borderBottomLeftRadius: 20,
-        borderBottomRightRadius: 20,
+        height: "100%",
+    },
+    playButton: {
+        position: "absolute",
+        top: "40%",
+        left: "42%",
+        zIndex: 5,
     },
     details: {
         padding: 16,
@@ -134,9 +191,18 @@ const styles = StyleSheet.create({
         fontSize: 15,
         lineHeight: 22,
     },
-    centered: {
+    modalBackground: {
         flex: 1,
+        backgroundColor: "#000",
         justifyContent: "center",
         alignItems: "center",
+    },
+    closeButton: {
+        position: "absolute",
+        top: 40,
+        right: 20,
+        backgroundColor: "rgba(0,0,0,0.6)",
+        borderRadius: 25,
+        padding: 6,
     },
 });

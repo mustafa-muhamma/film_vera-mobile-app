@@ -96,7 +96,7 @@ export const fetchMovieTrailer = async (id) => {
         const trailer = data.results.find(
             (video) => video.type === "Trailer" && video.site === "YouTube"
         );
-        return trailer ? trailer.key : null; // returns YouTube video ID
+        return trailer ? trailer.key : null;
     } catch (error) {
         console.error("Error fetching trailer:", error);
         return null;
